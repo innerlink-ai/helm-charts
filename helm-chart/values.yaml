@@ -9,7 +9,3 @@ registry:
   url: "localhost:5000"  # Default for air-gapped
   huggingface_url: "localhost:5000"
   redis_url: "localhost:5000"
-  #above air-gapped, below redis
-  # url: "ghcr.io/mattgorb"
-  # huggingface_url: "ghcr.io/huggingface/" 
-  # redis_url: "" 
