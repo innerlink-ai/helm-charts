@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: {{ .Values.namespace }} 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      imagePullSecrets:
+      - name: ghcr-secret
+      containers:
+      - name: backend
+        image: "{{ .Values.registry.url }}/innerlink-backend-gpu:latest"
+        command: ["./scripts/start-script.sh"]
+        args: ["postgres", "5432", "--", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+        ports:
+        - containerPort: 8000
+        env:
+        - name: TGI_URL
+          value: "http://tgi:8080"
+        - name: DATABASE_URL
+          value: "postgresql://admin:SuperSecurePassword@postgres:5432/postgres"
+        - name: INITIAL_USER_EMAIL
+          value: "matthewgorbett@gmail.com"
+        - name: DOMAIN
+          value: "demo.innerlink.ai"
+        - name: LLM
+          value: "meta-llama/Meta-Llama-3-8B-Instruct"
+        - name: HF_TOKEN
+          value: "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"
+        - name: ADMIN_DATABASE_URL
+          value: "postgresql://admin:SuperSecurePassword@postgres:5432/admin_db"
+        - name: CHAT_DATABASE_URL
+          value: "postgresql://admin:SuperSecurePassword@postgres:5432/chat_db"
+        - name: COLLECTIONS_DATABASE_URL
+          value: "postgresql://admin:SuperSecurePassword@postgres:5432/collections_db"
+        - name: REDIS_URL
+          value: "redis://redis:6379/0"
+        - name: DATA_DIR
+          value: "/app/data"
+        - name: LOG_LEVEL
+          value: "DEBUG"
+        - name: EMBEDDING_DIMENSION
+          value: "768"
+        - name: EMBEDDING_MODEL_NAME
+          value: "intfloat/multilingual-e5-base"
+        - name: EMBEDDING_CACHE_SIZE
+          value: "1"
+        - name: VECTORDB_K
+          value: "2"
+        - name: USE_CPU
+          value: "false"
+        volumeMounts:
+        - name: app-data
+          mountPath: /app/data
+        - name: model-weights-cache
+          mountPath: /app/data/model_weights
+      volumes:
+      - name: app-data
+        persistentVolumeClaim:
+          claimName: data-pvc
+      - name: model-weights-cache
+        persistentVolumeClaim:
+          claimName: model-weights-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: 8000
+    targetPort: 8000
+  type: ClusterIP

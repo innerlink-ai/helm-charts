@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tgi   
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tgi
+  template:
+    metadata:
+      labels:
+        app: tgi
+    spec:
+      runtimeClassName: nvidia
+      containers:
+      - name: tgi
+        image: "{{ .Values.registry.url }}/text-generation-inference:1.4.3"
+       
+        #resources:
+          #limits:
+            #nvidia.com/gpu: 1
+        ports:
+        - containerPort: 8080
+        env:
+        - name: MODEL_ID
+          value: "meta-llama/Llama-2-7b-chat-hf"
+        - name: HUGGING_FACE_HUB_TOKEN
+          value: "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"
+        - name: HOST
+          value: "0.0.0.0"
+        - name: PORT
+          value: "8080"
+        - name: HUGGING_FACE_HUB_CACHE
+          value: "/data" # use the local volume
+        - name: DTYPE
+          value: "float16"
+        - name: CUDA_MEMORY_FRACTION
+          value: "0.75"
+        volumeMounts:
+        - name: model-weights-storage
+          mountPath: /data
+      volumes:
+      - name: model-weights-storage
+        persistentVolumeClaim:
+          claimName: model-weights-pvc

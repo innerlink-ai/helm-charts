@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: embedding-worker
+  namespace: {{ .Values.namespace }} 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: embedding-worker
+  template:
+    metadata:
+      labels:
+        app: embedding-worker
+    spec:
+      runtimeClassName: nvidia
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+      - name: embedding-worker
+        image: "{{ .Values.registry.url }}/innerlink-embedding-worker:latest"
+        env:
+        - name: REDIS_URL
+          value: "redis://redis:6379/0"
+        - name: DATABASE_URL
+          value: "postgresql://admin:SuperSecurePassword@postgres:5432/collections_db"
+        - name: DATA_DIR
+          value: "/app/data"
+        - name: EMBEDDING_DIMENSION
+          value: "768"
+        - name: EMBEDDING_MODEL_NAME
+          value: "intfloat/multilingual-e5-base"
+        - name: LOG_LEVEL
+          value: "DEBUG"
+        - name: USE_CPU
+          value: "false"
+        #resources:
+          #limits:
+            #nvidia.com/gpu: 1
+        volumeMounts:
+        - name: app-data
+          mountPath: /app/data
+        - name: model-weights # Changed from huggingface-cache
+          mountPath: /app/data/huggingface # Changed mount path to match
+      volumes:
+      - name: app-data
+        persistentVolumeClaim:
+          claimName: data-pvc
+      - name: model-weights # Changed from huggingface-cache
+        persistentVolumeClaim:
+          claimName: model-weights-pvc # Changed from huggingface-pvc
+      #nodeSelector:
+        #accelerator: nvidia-gpu

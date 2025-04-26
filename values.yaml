@@ -1,0 +1,15 @@
+# Global settings
+namespace: innerlink
+
+# Image Registry Credentials
+imageCredentials:
+  dockerconfig: "eyJhdXRocyI6eyJnaGNyLmlvIjp7InVzZXJuYW1lIjoibWF0dGdvcmIiLCJwYXNzd29yZCI6ImdocF9TNExrZzcxOEZkZ0NlaGFhRmpuSkFJZEFwMlM3VmwzaTRnRUciLCJhdXRoIjoiYldGMGRHZHZjbUk2WjJod1gxTTBUR3RuTnpFNFJtUm5RMlZvWVdGR2FtNUtRVWxrUVhBeVV6ZFdiRE5wTkdkRlJ3PT0ifX19"
+  
+registry:
+  url: "localhost:5000"  # Default for air-gapped
+  huggingface_url: "localhost:5000"
+  redis_url: "localhost:5000"
+  #above air-gapped, below redis
+  # url: "ghcr.io/mattgorb"
+  # huggingface_url: "ghcr.io/huggingface/" 
+  # redis_url: "" 
