@@ -19,7 +19,7 @@ spec:
         image: "{{ .Values.registry.huggingface_url }}/text-generation-inference:1.4.3"
         args:
         - "--max-batch-prefill-tokens"
-        - "1024"
+        - "{{ .Values.tgi.args.maxBatchPrefillTokens }}"
         #resources:
           #limits:
             #nvidia.com/gpu: 1

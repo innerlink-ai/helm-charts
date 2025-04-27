@@ -28,11 +28,23 @@ spec:
           value: "postgres"
         - name: PGDATA
           value: "/var/lib/postgresql/data/pgdata"
+        - name: PGSSLMODE
+          value: "verify-ca"
+        - name: PGSSLCERT
+          value: "/etc/postgresql/ssl/postgres-certs/server.crt"
+        - name: PGSSLKEY
+          value: "/etc/postgresql/ssl/postgres-certs/server.key"
         volumeMounts:
         - name: postgres-data
           mountPath: /var/lib/postgresql/data
         - name: init-script
           mountPath: /docker-entrypoint-initdb.d
+        - name: postgres-ssl-config
+          mountPath: /etc/postgresql/postgresql.conf
+          subPath: postgresql.conf
+        - name: postgres-ssl-certs
+          mountPath: /etc/postgresql/ssl/postgres-certs
+          readOnly: true
         livenessProbe:
           exec:
             command:
@@ -52,16 +64,15 @@ spec:
       - name: init-script
         configMap:
           name: postgres-init-script
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: postgres
-  namespace: {{ .Values.namespace }}
-spec:
-  selector:
-    app: postgres
-  ports:
-  - port: 5432
-    targetPort: 5432
-  type: ClusterIP
+      - name: postgres-ssl-config
+        configMap:
+          name: postgres-ssl-config
+      - name: postgres-ssl-certs
+        secret:
+          secretName: postgres-ssl-certs
+          defaultMode: 0600
+          items:
+          - key: server.crt
+            path: server.crt
+          - key: server.key
+            path: server.key

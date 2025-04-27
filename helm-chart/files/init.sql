@@ -2,9 +2,9 @@
 \c postgres
 
 -- ✅ Enable SSL/TLS for connection security
-ALTER SYSTEM SET ssl = on;
-ALTER SYSTEM SET ssl_cert_file = '/var/lib/postgresql/ssl/server.crt';  -- Adjust path as needed
-ALTER SYSTEM SET ssl_key_file = '/var/lib/postgresql/ssl/server.key';   -- Adjust path as needed
+--ALTER SYSTEM SET ssl = on;
+--ALTER SYSTEM SET ssl_cert_file = '/etc/postgresql/ssl/postgres-certs/server.crt';  -- Adjust path as needed
+--ALTER SYSTEM SET ssl_key_file = '/etc/postgresql/ssl/postgres-certs/server.key';   -- Adjust path as needed
 
 -- ✅ Create two separate databases
 CREATE DATABASE admin_db OWNER admin;

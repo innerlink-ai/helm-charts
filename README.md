@@ -11,19 +11,54 @@ This Helm chart deploys InnerLink and its components in a Kubernetes cluster.
 ## Installation
 1. Create the required directories on your host machine:
 ```bash
-sudo mkdir -p /mnt/data /mnt/model-weights /mnt/redis /mnt/postgres
-sudo chmod 777 /mnt/data /mnt/model-weights /mnt/redis /mnt/postgres
+#pretty sure i dont need these. 
+#sudo mkdir -p /mnt/data /mnt/model-weights /mnt/redis /mnt/postgres
+#sudo chmod 777 /mnt/data /mnt/model-weights /mnt/redis /mnt/postgres
 ```
 
 2. Install the chart:
 ```bash
 cd /app
 kubectl apply -f helm-chart/files/namespace.yaml
-helm install innerlink ./helm-chart -n innerlink
+helm install innerlink ./helm-chart -n innerlink -f helm-chart/values-remote-24g.yaml
+
+```
+## Uninstallation
+To uninstall the chart:
+```bash
+helm uninstall innerlink
+kubectl delete namespace innerlink
+kubectl delete pvc -n innerlink --all
+#Note: This will not delete the PersistentVolumes. To delete them, you need to manually delete them:
+kubectl delete pv data-pv model-weights-pv redis-pv postgres-pv
+kubectl delete pv data-pv -n innerlink --grace-period=0 --force
+kubectl delete pv model-weights-pv -n innerlink --grace-period=0 --force
+kubectl delete pv  redis-pv  -n innerlink --grace-period=0 --force
+kubectl delete pv postgres-pv -n innerlink --grace-period=0 --force
+sudo rm -rf /app/data
+```
+
+
+## Upgrading/Reinstalling
+To upgrade or reinstall the chart (this will recreate all resources while maintaining PVs):
+```bash
+kubectl apply -f helm-chart/files/namespace.yaml
+helm upgrade --install innerlink ./helm-chart -n innerlink
+```
 
 
 
 
+
+
+
+
+
+
+
+
+
+```
 #in case above doesn't work, do this: 
 helm repo add nvidia https://helm.ngc.nvidia.com/nvidia \
    && helm repo update
@@ -49,28 +84,9 @@ kubectl annotate namespace innerlink meta.helm.sh/release-namespace=innerlink
 helm install innerlink ./innerlink-chart -n innerlink
 ```
 
-## Upgrading/Reinstalling
-
-To upgrade or reinstall the chart (this will recreate all resources while maintaining PVs):
-```bash
-kubectl apply -f helm-chart/files/namespace.yaml
-helm upgrade --install innerlink ./helm-chart -n innerlink
-```
 
 
-## Uninstallation
-To uninstall the chart:
-```bash
-helm uninstall innerlink
-kubectl delete namespace innerlink
-kubectl delete pvc -n innerlink --all
-#Note: This will not delete the PersistentVolumes. To delete them, you need to manually delete them:
-kubectl delete pv data-pv model-weights-pv redis-pv postgres-pv
-kubectl delete pv data-pv -n innerlink --grace-period=0 --force
-kubectl delete pv model-weights-pv -n innerlink --grace-period=0 --force
-kubectl delete pv  redis-pv  -n innerlink --grace-period=0 --force
-kubectl delete pv postgres-pv -n innerlink --grace-period=0 --force
-```
+
 
 
 
