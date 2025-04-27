@@ -16,8 +16,10 @@ spec:
       runtimeClassName: nvidia
       containers:
       - name: tgi
-        image: "{{ .Values.registry.url }}/text-generation-inference:1.4.3"
-       
+        image: "{{ .Values.registry.huggingface_url }}/text-generation-inference:1.4.3"
+        args:
+        - "--max-batch-prefill-tokens"
+        - "1024"
         #resources:
           #limits:
             #nvidia.com/gpu: 1

@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: postgres
-        image: "{{ .Values.registry.url }}/pgvector:latest"
+        image: "ankane/pgvector:latest"
         ports:
         - containerPort: 5432
         env:
@@ -28,8 +28,6 @@ spec:
           value: "postgres"
         - name: PGDATA
           value: "/var/lib/postgresql/data/pgdata"
-        #- name: DB_KMS_KEY_ARN
-          #value: "{{ .Values.postgresql.extraEnv | default dict | selectattr('name', 'equalto', 'DB_KMS_KEY_ARN') | map(attribute='value') | first | default '' }}"
         volumeMounts:
         - name: postgres-data
           mountPath: /var/lib/postgresql/data

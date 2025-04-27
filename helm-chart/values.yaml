@@ -6,6 +6,7 @@ imageCredentials:
   dockerconfig: "eyJhdXRocyI6eyJnaGNyLmlvIjp7InVzZXJuYW1lIjoibWF0dGdvcmIiLCJwYXNzd29yZCI6ImdocF9TNExrZzcxOEZkZ0NlaGFhRmpuSkFJZEFwMlM3VmwzaTRnRUciLCJhdXRoIjoiYldGMGRHZHZjbUk2WjJod1gxTTBUR3RuTnpFNFJtUm5RMlZvWVdGR2FtNUtRVWxrUVhBeVV6ZFdiRE5wTkdkRlJ3PT0ifX19"
   
 registry:
-  url: "localhost:5000"  # Default for air-gapped
-  huggingface_url: "localhost:5000"
-  redis_url: "localhost:5000"
+  #url: "localhost:5000"  # Default for air-gapped
+  url: "ghcr.io/innerlink-ai"
+  #huggingface_url: "localhost:5000"
+  huggingface_url: "ghcr.io/huggingface"

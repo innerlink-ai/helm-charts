@@ -17,10 +17,14 @@ sudo chmod 777 /mnt/data /mnt/model-weights /mnt/redis /mnt/postgres
 
 2. Install the chart:
 ```bash
-helm install innerlink ./innerlink-chart -n innerlink    --create-namespace 
+cd /app
+kubectl apply -f helm-chart/files/namespace.yaml
+helm install innerlink ./helm-chart -n innerlink
+
+
+
 
 #in case above doesn't work, do this: 
-
 helm repo add nvidia https://helm.ngc.nvidia.com/nvidia \
    && helm repo update
 # install the operator
@@ -49,11 +53,9 @@ helm install innerlink ./innerlink-chart -n innerlink
 
 To upgrade or reinstall the chart (this will recreate all resources while maintaining PVs):
 ```bash
-kubectl apply -f innerlink-chart/files/namespace.yaml
-helm upgrade --install innerlink ./innerlink-chart -n innerlink
+kubectl apply -f helm-chart/files/namespace.yaml
+helm upgrade --install innerlink ./helm-chart -n innerlink
 ```
-
-
 
 
 ## Uninstallation

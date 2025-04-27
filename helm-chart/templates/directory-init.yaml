@@ -1,20 +1,15 @@
-apiVersion: apps/v1
-kind: DaemonSet
+apiVersion: batch/v1
+kind: Job
 metadata:
   name: storage-directory-creator
-  namespace: {{ .Values.namespace }} 
+  namespace: {{ .Values.namespace }}
 spec:
-  selector:
-    matchLabels:
-      app: storage-directory-creator
   template:
-    metadata:
-      labels:
-        app: storage-directory-creator
     spec:
-      initContainers:
+      restartPolicy: OnFailure
+      containers:
       - name: directory-creator
-        image: "{{ .Values.registry.url }}/busybox"
+        image: busybox
         command:
         - sh
         - -c
@@ -30,19 +25,8 @@ spec:
         - name: host-root
           mountPath: /host
         securityContext:
-          privileged: true  # Needed to create directories on host
-      containers:
-      - name: pause
-        image: gcr.io/google_containers/pause:3.2
-        resources:
-          limits:
-            cpu: 100m
-            memory: 30Mi
-          requests:
-            cpu: 10m
-            memory: 10Mi
+          privileged: true
       volumes:
       - name: host-root
         hostPath:
           path: /
-      terminationGracePeriodSeconds: 5
