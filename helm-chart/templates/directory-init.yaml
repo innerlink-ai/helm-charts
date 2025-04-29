@@ -3,8 +3,14 @@ kind: Job
 metadata:
   name: storage-directory-creator
   namespace: {{ .Values.namespace }}
+  annotations:
+    sidecar.istio.io/inject: "false"   # <- disable Istio sidecar injection
 spec:
+  ttlSecondsAfterFinished: 30  # <- Job will auto-delete itself 30 seconds after success or failure
   template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"  # <- ALSO needed inside the pod template!
     spec:
       restartPolicy: OnFailure
       containers:

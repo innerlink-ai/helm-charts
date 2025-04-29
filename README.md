@@ -20,6 +20,7 @@ This Helm chart deploys InnerLink and its components in a Kubernetes cluster.
 ```bash
 cd /app
 kubectl apply -f helm-chart/files/namespace.yaml
+kubectl label namespace innerlink istio-injection=enabled --overwrite
 helm install innerlink ./helm-chart -n innerlink -f helm-chart/values-remote-24g.yaml
 
 ```

@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tgi   
+  name: tgi
   namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
@@ -13,6 +13,10 @@ spec:
       labels:
         app: tgi
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       runtimeClassName: nvidia
       containers:
       - name: tgi
@@ -35,11 +39,18 @@ spec:
         - name: PORT
           value: "8080"
         - name: HUGGING_FACE_HUB_CACHE
-          value: "/data" # use the local volume
+          value: "/data"
         - name: DTYPE
           value: "float16"
         - name: CUDA_MEMORY_FRACTION
           value: "0.75"
+        - name: NUMBA_CACHE_DIR # Add this line
+          value: "/data/.cache/numba"
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          readOnlyRootFilesystem: false
         volumeMounts:
         - name: model-weights-storage
           mountPath: /data

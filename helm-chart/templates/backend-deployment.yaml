@@ -30,7 +30,7 @@ spec:
         - name: INITIAL_USER_EMAIL
           value: "matthewgorbett@gmail.com"
         - name: DOMAIN
-          value: "demo.innerlink.ai"
+          value: "localhost:8080"
         - name: LLM
           value: "meta-llama/Meta-Llama-3-8B-Instruct"
         - name: HF_TOKEN
@@ -57,6 +57,8 @@ spec:
           value: "2"
         - name: USE_CPU
           value: "false"
+        - name: SMTP_PASSWORD
+          value: "Q.+j6dB@ng^%TM4"
         volumeMounts:
         - name: app-data
           mountPath: /app/data
