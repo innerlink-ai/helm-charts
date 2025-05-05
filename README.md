@@ -16,17 +16,36 @@ This Helm chart deploys InnerLink and its components in a Kubernetes cluster.
 #sudo chmod 777 /mnt/data /mnt/model-weights /mnt/redis /mnt/postgres
 ```
 
+
+```
+kubectl -n istio-system get gateways.networking.istio.io
+kubectl -n istio-system delete gateways.networking.istio.io innerlink-gw
+```
+
 2. Install the chart:
 ```bash
 cd /app
 kubectl apply -f helm-chart/files/namespace.yaml
 kubectl label namespace innerlink istio-injection=enabled --overwrite
+SECRET=$(openssl rand -base64 32)
+kubectl create secret generic jwt-secret -n innerlink --from-literal=JWT_SECRET="$SECRET" --dry-run=client -o yaml | kubectl apply -f -
 helm install innerlink ./helm-chart -n innerlink -f helm-chart/values-remote-24g.yaml
 
 ```
+
+```
+cd /app
+kubectl apply -f helm-chart/files/namespace.yaml
+kubectl label namespace innerlink istio-injection=enabled --overwrite
+SECRET=$(openssl rand -base64 32)
+kubectl create secret generic jwt-secret -n innerlink --from-literal=JWT_SECRET="$SECRET" --dry-run=client -o yaml | kubectl apply -f -
+helm install innerlink ./helm-chart -n innerlink -f helm-chart/values-local-24g-llama7b.yaml
+```
+
 ## Uninstallation
 To uninstall the chart:
 ```bash
+
 helm uninstall innerlink
 kubectl delete namespace innerlink
 kubectl delete pvc -n innerlink --all
@@ -37,6 +56,7 @@ kubectl delete pv model-weights-pv -n innerlink --grace-period=0 --force
 kubectl delete pv  redis-pv  -n innerlink --grace-period=0 --force
 kubectl delete pv postgres-pv -n innerlink --grace-period=0 --force
 sudo rm -rf /app/data
+
 ```
 
 

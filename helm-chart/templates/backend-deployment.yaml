@@ -27,8 +27,6 @@ spec:
           value: "http://tgi:8080"
         - name: DATABASE_URL
           value: "postgresql://admin:SuperSecurePassword@postgres:5432/postgres"
-        - name: INITIAL_USER_EMAIL
-          value: "matthewgorbett@gmail.com"
         - name: DOMAIN
           value: "localhost:8080"
         - name: LLM
@@ -57,8 +55,12 @@ spec:
           value: "2"
         - name: USE_CPU
           value: "false"
-        - name: SMTP_PASSWORD
-          value: "Q.+j6dB@ng^%TM4"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: jwt-secret
+              key: JWT_SECRET
+      
         volumeMounts:
         - name: app-data
           mountPath: /app/data
@@ -81,6 +83,7 @@ spec:
   selector:
     app: backend
   ports:
-  - port: 8000
-    targetPort: 8000
+  - name: http           # <-- critical: starts with “http”
+    port: 8000           # port exposed inside the cluster
+    targetPort: 8000     # containerPort in the Pod
   type: ClusterIP

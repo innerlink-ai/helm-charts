@@ -1,0 +1,20 @@
+{{- if .Values.istio.enabled }}
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: innerlink
+  namespace: {{ .Values.namespace }}
+spec:
+  hosts: {{ toJson .Values.istio.hosts }}
+  gateways:
+  - istio-system/{{ .Values.istio.gateway.name }}
+  http:
+  - name: api
+    match: [{ uri: { prefix: "/api" } }]
+    route:
+    - destination: { host: backend, port: { number: 8000 } }
+  - name: web
+    match: [{ uri: { prefix: "/" } }]
+    route:
+    - destination: { host: frontend, port: { number: 80 } }
+{{- end }}

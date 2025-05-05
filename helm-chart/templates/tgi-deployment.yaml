@@ -32,8 +32,10 @@ spec:
         env:
         - name: MODEL_ID
           value: "meta-llama/Llama-2-7b-chat-hf"
-        - name: HUGGING_FACE_HUB_TOKEN
-          value: "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"
+        - name: TENSOR_PARALLEL_SIZE
+          value: "4"
+        - name: CUDA_VISIBLE_DEVICES
+          value: "0,1,2,3"
         - name: HOST
           value: "0.0.0.0"
         - name: PORT

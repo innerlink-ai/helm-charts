@@ -1,0 +1,24 @@
+# Global settings
+namespace: innerlink
+
+
+registry:
+  #For airgapped deployments
+  url: "localhost:5000"
+  huggingface_url: "localhost:5000"
+
+
+tgi:
+  args:
+    maxBatchPrefillTokens: 1024
+  model:
+    id: "meta-llama/Llama-3.1-8B-Instruct"
+  gpu:
+    tensorParallelSize: "1"
+    cudaVisibleDevices: "0"
+
+# PostgreSQL Configuration
+postgres:
+  ssl:
+    # Certificate will be read directly from local filesystem
+    certPath: "/etc/postgresql/ssl/postgres-certs"

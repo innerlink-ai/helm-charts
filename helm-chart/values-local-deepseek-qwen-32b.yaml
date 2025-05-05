@@ -1,0 +1,25 @@
+# Global settings
+namespace: innerlink
+
+
+registry:
+  #For airgapped deployments
+  url: "localhost:5000"
+  huggingface_url: "localhost:5000"
+
+
+tgi:
+  args:
+    maxBatchPrefillTokens: 16384
+  model:
+    #id: "Qwen/QwQ-32B"
+    id: "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
+  gpu:
+    tensorParallelSize: "4"
+    cudaVisibleDevices: "0,1,2,3"
+
+# PostgreSQL Configuration
+postgres:
+  ssl:
+    # Certificate will be read directly from local filesystem
+    certPath: "/etc/postgresql/ssl/postgres-certs"
