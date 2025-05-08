@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: postgres
-        image: "ankane/pgvector:latest"
+        image: "{{ .Values.registry.base_url }}/ankane/pgvector:latest"
         ports:
         - containerPort: 5432
         env:

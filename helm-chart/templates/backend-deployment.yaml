@@ -13,8 +13,10 @@ spec:
       labels:
         app: backend
     spec:
+      {{- if and (hasKey .Values "imageCredentials") (hasKey .Values.imageCredentials "dockerconfig") }}
       imagePullSecrets:
       - name: ghcr-secret
+      {{- end }}
       containers:
       - name: backend
         image: "{{ .Values.registry.url }}/innerlink-backend:latest"

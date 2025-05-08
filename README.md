@@ -29,8 +29,11 @@ kubectl apply -f helm-chart/files/namespace.yaml
 kubectl label namespace innerlink istio-injection=enabled --overwrite
 SECRET=$(openssl rand -base64 32)
 kubectl create secret generic jwt-secret -n innerlink --from-literal=JWT_SECRET="$SECRET" --dry-run=client -o yaml | kubectl apply -f -
-helm install innerlink ./helm-chart -n innerlink -f helm-chart/values-remote-24g.yaml
+helm install innerlink ./helm-chart -n innerlink -f helm-chart/values-local-24g-llama2-7b.yaml
 
+
+
+helm upgrade innerlink ./helm-chart -n innerlink -f helm-chart/values-local-24g-llama2-7b.yaml
 ```
 
 ```
@@ -39,7 +42,8 @@ kubectl apply -f helm-chart/files/namespace.yaml
 kubectl label namespace innerlink istio-injection=enabled --overwrite
 SECRET=$(openssl rand -base64 32)
 kubectl create secret generic jwt-secret -n innerlink --from-literal=JWT_SECRET="$SECRET" --dry-run=client -o yaml | kubectl apply -f -
-helm install innerlink ./helm-chart -n innerlink -f helm-chart/values-local-24g-llama7b.yaml
+helm install innerlink ./helm-chart -n innerlink -f helm-chart/values-local-24g-llama2-7b.yaml
+
 ```
 
 ## Uninstallation

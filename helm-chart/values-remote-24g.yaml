@@ -27,6 +27,9 @@ registry:
 tgi:
   args:
     maxBatchPrefillTokens: 1024
+  model:
+    path: "/data/model_weights/meta-llama/Llama-2-7b-chat-hf"
+    offline: "0"
 
 # PostgreSQL Configuration
 postgres:

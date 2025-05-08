@@ -13,8 +13,10 @@ spec:
       labels:
         app: frontend
     spec:
-      imagePullSecrets:  # Add this section
+      {{- if and (hasKey .Values "imageCredentials") (hasKey .Values.imageCredentials "dockerconfig") }}
+      imagePullSecrets:
       - name: ghcr-secret
+      {{- end }}
       containers:
       - name: frontend
         image: "{{ .Values.registry.url }}/innerlink-frontend:latest"
