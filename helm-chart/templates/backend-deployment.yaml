@@ -31,10 +31,8 @@ spec:
           value: "postgresql://admin:SuperSecurePassword@postgres:5432/postgres"
         - name: DOMAIN
           value: "localhost:8080"
-        - name: LLM
-          value: "meta-llama/Meta-Llama-3-8B-Instruct"
-        - name: HF_TOKEN
-          value: "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"
+        - name: HF_HUB_OFFLINE
+          value: "{{ .Values.tgi.model.offline }}"
         - name: ADMIN_DATABASE_URL
           value: "postgresql://admin:SuperSecurePassword@postgres:5432/admin_db"
         - name: CHAT_DATABASE_URL
@@ -47,14 +45,6 @@ spec:
           value: "/app/data"
         - name: LOG_LEVEL
           value: "DEBUG"
-        - name: EMBEDDING_DIMENSION
-          value: "768"
-        - name: EMBEDDING_MODEL_NAME
-          value: "intfloat/multilingual-e5-base"
-        - name: EMBEDDING_CACHE_SIZE
-          value: "1"
-        - name: VECTORDB_K
-          value: "2"
         - name: USE_CPU
           value: "false"
         - name: JWT_SECRET

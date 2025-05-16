@@ -16,14 +16,72 @@ This Helm chart deploys InnerLink and its components in a Kubernetes cluster.
 #sudo chmod 777 /mnt/data /mnt/model-weights /mnt/redis /mnt/postgres
 ```
 
-
+# Remove K3s
 ```
-kubectl -n istio-system get gateways.networking.istio.io
-kubectl -n istio-system delete gateways.networking.istio.io innerlink-gw
+sudo systemctl stop k3s
+sudo systemctl disable k3s        # leave the service installed but off
+sudo rm -rf /var/lib/rancher/k3s/*  /etc/rancher/k3s/*  ~/.kube
+```
+
+# Istio
+```
+#Local
+sudo curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.25.2 sh -
+cd istio-1.25.2
+export PATH=$PWD/bin:$PATH
 ```
 
 2. Install the chart:
 ```bash
+sudo mkdir -p /etc/rancher/k3s
+sudo tee /etc/rancher/k3s/config.yaml >/dev/null <<'EOF'
+write-kubeconfig-mode: "644"     # world‑readable kube‑config
+cluster-init: true               # this node becomes a fresh control plane
+EOF
+sudo systemctl restart k3s
+#sudo systemctl enable k3s 
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+echo 'export KUBECONFIG=/etc/rancher/k3s/k3s.yaml' | sudo tee -a /etc/profile.d/k3s.sh
+kubectl get nodes
+sudo kubectl get namespaces
+
+
+sudo systemctl stop  k3s
+sudo rm -rf /var/lib/rancher/k3s/server   # ensure no half‑written state
+sudo systemctl start k3s                  # fresh cluster‑init
+sleep 10
+sudo kubectl get nodes 
+sleep 5
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
+cd /app
+kubectl apply -f helm-chart/files/namespace.yaml
+
+sudo kubectl label nodes $(sudo kubectl get nodes -o jsonpath='{.items[0].metadata.name}') role=storage
+
+sudo kubectl label namespace innerlink istio-injection=enabled --overwrite
+SECRET=$(sudo openssl rand -base64 32)
+sudo kubectl create secret generic jwt-secret -n innerlink --from-literal=JWT_SECRET="$SECRET" --dry-run=client -o yaml | sudo kubectl apply -f -
+sudo helm install innerlink ./helm-chart -n innerlink -f helm-chart/values-llama2-7b.yaml \
+  --set global.imageRegistry=localhost:5000 \
+  --kubeconfig /etc/rancher/k3s/k3s.yaml
+
+
+
+sudo cp istio-1.25.2/bin/istioctl /usr/local/bin/
+sudo chmod +x /usr/local/bin/istioctl
+
+istioctl install -f istio/local-istio.yaml  -y
+kubectl apply -f istio/istio-gateway.yaml
+kubectl apply -f istio/istio-virtualservice.yaml
+kubectl apply -f istio/istio-gateway-service.yaml
+
+sudo helm upgrade innerlink ./helm-chart -n innerlink -f  helm-chart/values-llama2-7b.yaml  --kubeconfig /etc/rancher/k3s/k3s.yaml
+
+```
+
+```
+
 cd /app
 kubectl apply -f helm-chart/files/namespace.yaml
 kubectl label namespace innerlink istio-injection=enabled --overwrite
@@ -31,18 +89,6 @@ SECRET=$(openssl rand -base64 32)
 kubectl create secret generic jwt-secret -n innerlink --from-literal=JWT_SECRET="$SECRET" --dry-run=client -o yaml | kubectl apply -f -
 helm install innerlink ./helm-chart -n innerlink -f helm-chart/values-local-24g-llama2-7b.yaml
 
-
-
-helm upgrade innerlink ./helm-chart -n innerlink -f helm-chart/values-local-24g-llama2-7b.yaml
-```
-
-```
-cd /app
-kubectl apply -f helm-chart/files/namespace.yaml
-kubectl label namespace innerlink istio-injection=enabled --overwrite
-SECRET=$(openssl rand -base64 32)
-kubectl create secret generic jwt-secret -n innerlink --from-literal=JWT_SECRET="$SECRET" --dry-run=client -o yaml | kubectl apply -f -
-helm install innerlink ./helm-chart -n innerlink -f helm-chart/values-local-24g-llama2-7b.yaml
 
 ```
 
@@ -59,6 +105,9 @@ kubectl delete pv data-pv -n innerlink --grace-period=0 --force
 kubectl delete pv model-weights-pv -n innerlink --grace-period=0 --force
 kubectl delete pv  redis-pv  -n innerlink --grace-period=0 --force
 kubectl delete pv postgres-pv -n innerlink --grace-period=0 --force
+sudo rm -rf /app/data/postgres
+
+
 sudo rm -rf /app/data
 
 ```

@@ -1,0 +1,24 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: api-routes
+  namespace: innerlink
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - istio-system/innerlink-gw
+  http:
+  - match:
+    - uri:
+        prefix: "/api"
+    route:
+    - destination:
+        host: backend
+        port:
+          number: 8000
+  - route:
+    - destination:
+        host: frontend
+        port:
+          number: 80

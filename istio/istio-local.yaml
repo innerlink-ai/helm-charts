@@ -1,0 +1,14 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+spec:
+  hub: localhost:5000/istio
+  tag: 1.25.2
+  components:
+    pilot:
+      enabled: true
+    ingressGateways:
+    - name: istio-ingressgateway
+      enabled: true
+  values:
+    global:
+      imagePullPolicy: IfNotPresent

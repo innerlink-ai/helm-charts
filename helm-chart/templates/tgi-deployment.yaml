@@ -22,7 +22,6 @@ spec:
       - name: tgi
         image: "{{ .Values.registry.huggingface_url }}/text-generation-inference:1.4.3"
         args:
-
         - "--max-batch-prefill-tokens"
         - "{{ .Values.tgi.args.maxBatchPrefillTokens }}"
         #resources:
@@ -35,16 +34,18 @@ spec:
           value: "{{ .Values.tgi.model.path }}"
         - name: HF_HUB_OFFLINE
           value: "{{ .Values.tgi.model.offline }}"
+        #- name: HUGGING_FACE_HUB_TOKEN
+          #value: "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"
         - name: TENSOR_PARALLEL_SIZE
-          value: "4"
+          value: "{{ .Values.tgi.gpu.tensorParallelSize }}"
         - name: CUDA_VISIBLE_DEVICES
-          value: "0,1,2,3"
+          value: "{{ .Values.tgi.gpu.cudaVisibleDevices }}"
         - name: HOST
           value: "0.0.0.0"
         - name: PORT
           value: "8080"
-        - name: HUGGING_FACE_HUB_CACHE
-          value: "/data"
+       # - name: HUGGING_FACE_HUB_CACHE
+          #value: "/data/"
         - name: DTYPE
           value: "float16"
         #- name: CUDA_MEMORY_FRACTION
