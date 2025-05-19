@@ -21,6 +21,8 @@ imageCredentials:
   
 registry:
   base_url: "ghcr.io"
+  postgres_url: "docker.io"
+  busy_box_url: "ghcr.io/containerd"
   url: "ghcr.io/innerlink-ai"
   huggingface_url: "ghcr.io/huggingface"
 

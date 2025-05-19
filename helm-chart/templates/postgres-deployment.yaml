@@ -14,9 +14,13 @@ spec:
       labels:
         app: postgres
     spec:
+      {{- if and (hasKey .Values "imageCredentials") (hasKey .Values.imageCredentials "dockerconfig") }}
+      imagePullSecrets:
+      - name: ghcr-secret
+      {{- end }}
       containers:
       - name: postgres
-        image: "{{ .Values.registry.base_url }}/ankane/pgvector:latest"
+        image: "{{ .Values.registry.postgres_url }}/ankane/pgvector:latest"
         ports:
         - containerPort: 5432
         env:

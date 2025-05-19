@@ -20,7 +20,7 @@ spec:
       runtimeClassName: nvidia
       containers:
       - name: tgi
-        image: "{{ .Values.registry.huggingface_url }}/text-generation-inference:1.4.3"
+        image: "{{ .Values.registry.huggingface_url }}/text-generation-inference:2.4.1"
         args:
         - "--max-batch-prefill-tokens"
         - "{{ .Values.tgi.args.maxBatchPrefillTokens }}"
@@ -34,8 +34,6 @@ spec:
           value: "{{ .Values.tgi.model.path }}"
         - name: HF_HUB_OFFLINE
           value: "{{ .Values.tgi.model.offline }}"
-        #- name: HUGGING_FACE_HUB_TOKEN
-          #value: "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"
         - name: TENSOR_PARALLEL_SIZE
           value: "{{ .Values.tgi.gpu.tensorParallelSize }}"
         - name: CUDA_VISIBLE_DEVICES
@@ -48,10 +46,25 @@ spec:
           #value: "/data/"
         - name: DTYPE
           value: "float16"
-        #- name: CUDA_MEMORY_FRACTION
-          #value: "0.75"
         - name: NUMBA_CACHE_DIR # Add this line
           value: "/data/.cache/numba"
+        - name: OUTLINES_CACHE_DIR
+          value: "/data/.cache/outlines"
+        - name: TRANSFORMERS_CACHE
+          value: "/data/.cache/huggingface"
+        - name: TRITON_CACHE_DIR
+          value: "/data/.cache/triton"
+        - name: TRANSFORMERS_CACHE
+          value: "/data/.cache/huggingface"
+        - name: XDG_CACHE_HOME
+          value: "/data/.cache"
+          
+        - name: MAX_TOTAL_TOKENS
+          value: "2056"
+        - name: MAX_INPUT_LENGTH
+          value: "1024"  # Limit input to 512
+        - name: MAX_BATCH_PREFILL_TOKENS
+          value: "2056"
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

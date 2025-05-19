@@ -5,6 +5,8 @@ namespace: innerlink
 registry:
   #airgapped deployments
   base_url: "localhost:5000"
+  busy_box_url: "localhost:5000"
+  postgres_url: "localhost:5000"
   url: "localhost:5000/ghcr.io/innerlink-ai"
   huggingface_url: "localhost:5000/ghcr.io/huggingface"
   

@@ -15,7 +15,7 @@ spec:
       restartPolicy: OnFailure
       containers:
       - name: directory-creator
-        image: "{{ .Values.registry.base_url }}/busybox:latest"
+        image: "{{ .Values.registry.busy_box_url }}/busybox:latest"
         command:
         - sh
         - -c
