@@ -20,7 +20,7 @@ spec:
       runtimeClassName: nvidia
       containers:
       - name: tgi
-        image: "{{ .Values.registry.base_url }}/innerlink-tgi-model-weights:2.4.1"
+        image: "{{ .Values.registry.huggingface_url }}/text-generation-inference:2.4.1"
         args:
         - "--max-batch-prefill-tokens"
         - "{{ .Values.tgi.args.maxBatchPrefillTokens }}"
@@ -53,6 +53,8 @@ spec:
           value: "/data/.cache/huggingface"
         - name: TRITON_CACHE_DIR
           value: "/data/.cache/triton"
+        - name: TRANSFORMERS_CACHE
+          value: "/data/.cache/huggingface"
         - name: XDG_CACHE_HOME
           value: "/data/.cache"
 

@@ -56,14 +56,12 @@ export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 
 cd /app
 kubectl apply -f helm-chart/files/namespace.yaml
-
 sudo kubectl label nodes $(sudo kubectl get nodes -o jsonpath='{.items[0].metadata.name}') role=storage
-
 sudo kubectl label namespace innerlink istio-injection=enabled --overwrite
 SECRET=$(sudo openssl rand -base64 32)
 sudo kubectl create secret generic jwt-secret -n innerlink --from-literal=JWT_SECRET="$SECRET" --dry-run=client -o yaml | sudo kubectl apply -f -
 sudo helm install innerlink ./helm-chart -n innerlink -f helm-chart/values-remote-24g.yaml \
-  --kubeconfig /etc/rancher/k3s/k3s.yaml
+ --kubeconfig /etc/rancher/k3s/k3s.yaml
 
 
 sudo helm upgrade innerlink ./helm-chart -n innerlink -f  helm-chart/values-remote-24g.yaml  --kubeconfig /etc/rancher/k3s/k3s.yaml
@@ -77,8 +75,8 @@ if ! sudo -u ubuntu docker ps | grep -q registry; then
    sudo -u ubuntu docker run -d -p 5000:5000 --restart=always --name registry registry:2
 fi
 sudo systemctl stop  k3s
-sudo rm -rf /var/lib/rancher/k3s/server   # ensure no half‑written state
-sudo systemctl start k3s                  # fresh cluster‑init
+sudo rm -rf /var/lib/rancher/k3s/server
+sudo systemctl start k3s
 sleep 10
 sudo kubectl get nodes 
 sleep 5
@@ -100,7 +98,7 @@ sudo cp istio-1.25.2/bin/istioctl /usr/local/bin/
 sudo chmod +x /usr/local/bin/istioctl
 
 istioctl install -f istio/local-istio.yaml  -y
-kubectl apply -f istio/istio-gateway.yaml
+kubectl apply -f istio/istio-gateway.yaml -n istio-system
 kubectl apply -f istio/istio-virtualservice.yaml
 kubectl apply -f istio/istio-gateway-service.yaml
 

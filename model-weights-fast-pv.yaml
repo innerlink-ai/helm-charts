@@ -1,0 +1,24 @@
+# model-weights-fast-pvc.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-fast-weights
+spec:
+  capacity:
+    storage: 240Gi
+  accessModes: [ReadWriteOnce]
+  storageClassName: fast-weights
+  hostPath:
+    path: /mnt/fast-ssd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: model-weights-pvc
+  namespace: innerlink
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: fast-weights
+  resources:
+    requests:
+      storage: 240Gi

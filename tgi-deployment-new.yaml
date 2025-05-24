@@ -20,18 +20,15 @@ spec:
       runtimeClassName: nvidia
       containers:
       - name: tgi
-        image: "{{ .Values.registry.base_url }}/innerlink-tgi-model-weights:2.4.1"
+        image: "localhost:5000/innerlink-tgi-with-llama:2.4.1"
         args:
         - "--max-batch-prefill-tokens"
         - "{{ .Values.tgi.args.maxBatchPrefillTokens }}"
-        #resources:
-          #limits:
-            #nvidia.com/gpu: 1
         ports:
         - containerPort: 8080
         env:
         - name: MODEL_ID
-          value: "{{ .Values.tgi.model.path }}"
+          value: "/data"
         - name: HF_HUB_OFFLINE
           value: "{{ .Values.tgi.model.offline }}"
         - name: TENSOR_PARALLEL_SIZE
@@ -42,24 +39,22 @@ spec:
           value: "0.0.0.0"
         - name: PORT
           value: "8080"
-
         - name: DTYPE
           value: "float16"
-        - name: NUMBA_CACHE_DIR # Add this line
-          value: "/data/.cache/numba"
+        - name: NUMBA_CACHE_DIR
+          value: "/tmp/.cache/numba"
         - name: OUTLINES_CACHE_DIR
-          value: "/data/.cache/outlines"
+          value: "/tmp/.cache/outlines"
         - name: TRANSFORMERS_CACHE
-          value: "/data/.cache/huggingface"
+          value: "/tmp/.cache/huggingface"
         - name: TRITON_CACHE_DIR
-          value: "/data/.cache/triton"
+          value: "/tmp/.cache/triton"
         - name: XDG_CACHE_HOME
-          value: "/data/.cache"
-
+          value: "/tmp/.cache"
         - name: MAX_TOTAL_TOKENS
           value: "2056"
         - name: MAX_INPUT_LENGTH
-          value: "1024"  # Limit input to 512
+          value: "1024"
         - name: MAX_BATCH_PREFILL_TOKENS
           value: "2056"
         securityContext:
@@ -68,13 +63,10 @@ spec:
             drop: ["ALL"]
           readOnlyRootFilesystem: false
         volumeMounts:
-        - name: model-weights-storage
-          mountPath: /data
+        - name: shm
+          mountPath: /dev/shm
       volumes:
-      - name: model-weights-storage
-        persistentVolumeClaim:
-          claimName: model-weights-pvc
-      - name: shm                       # <‑‑ NEW
+      - name: shm
         emptyDir:
-          medium: Memory               # tmpfs (RAM‑backed)  :contentReference[oaicite:0]{index=0}
-          sizeLimit: 1Gi               # 1 GiB is usually enough
+          medium: Memory
+          sizeLimit: 1Gi
