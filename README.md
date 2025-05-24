@@ -70,7 +70,7 @@ sudo helm upgrade innerlink ./helm-chart -n innerlink -f  helm-chart/values-remo
 
 2. Install the chart:
 ```bash
-
+curl -X GET http://localhost:5000/v2/_catalog
 if ! sudo -u ubuntu docker ps | grep -q registry; then
    sudo -u ubuntu docker run -d -p 5000:5000 --restart=always --name registry registry:2
 fi
@@ -81,6 +81,10 @@ sleep 10
 sudo kubectl get nodes 
 sleep 5
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
+sudo k3s crictl pull localhost:5000/innerlink-tgi-model-weights:2.4.1
+sudo k3s crictl pull localhost:5000/ghcr.io/innerlink-ai/innerlink-backend:latest
+sudo k3s crictl pull localhost:5000/ghcr.io/innerlink-ai/innerlink-frontend:latest
 
 cd /app
 kubectl apply -f helm-chart/files/namespace.yaml
