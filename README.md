@@ -75,7 +75,7 @@ if ! sudo -u ubuntu docker ps | grep -q registry; then
    sudo -u ubuntu docker run -d -p 5000:5000 --restart=always --name registry registry:2
 fi
 sudo systemctl stop  k3s
-sudo rm -rf /var/lib/rancher/k3s/server
+#sudo rm -rf /var/lib/rancher/k3s/server
 sudo systemctl start k3s
 sleep 10
 sudo kubectl get nodes 
