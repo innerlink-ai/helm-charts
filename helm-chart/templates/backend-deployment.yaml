@@ -1,3 +1,4 @@
+{{- if .Values.backend.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -56,15 +57,15 @@ spec:
         volumeMounts:
         - name: app-data
           mountPath: /app/data
-        - name: model-weights-cache
-          mountPath: /app/data/model_weights
+        #- name: model-weights-cache
+         # mountPath: /app/data/model_weights
       volumes:
       - name: app-data
         persistentVolumeClaim:
           claimName: data-pvc
-      - name: model-weights-cache
-        persistentVolumeClaim:
-          claimName: model-weights-pvc
+      #- name: model-weights-cache
+       # persistentVolumeClaim:
+        #  claimName: model-weights-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -79,3 +80,4 @@ spec:
     port: 8000           # port exposed inside the cluster
     targetPort: 8000     # containerPort in the Pod
   type: ClusterIP
+{{- end }}

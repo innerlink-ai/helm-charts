@@ -1,15 +1,15 @@
-
+# Global settings
 namespace: innerlink
 
 
 registry:
-  #airgapped deployments
+  #For airgapped deployments
   base_url: "localhost:5000"
-  busy_box_url: "localhost:5000"
+  busy_box_url: "localhost:5000/ghcr.io/containerd"
   postgres_url: "localhost:5000"
   url: "localhost:5000/ghcr.io/innerlink-ai"
   huggingface_url: "localhost:5000/ghcr.io/huggingface"
-  
+
 istio:
   enabled: true
   gateway:
@@ -24,10 +24,9 @@ istio:
 
 tgi:
   args:
-    maxBatchPrefillTokens: 1024
+    maxBatchPrefillTokens: 16384
   model:
-    path: "/data/meta-llama/Llama-2-7b-chat-hf"
-    id: "meta-llama/Llama-2-7b-chat-hf"
+    path: "google/gemma-3-12b-it"
     offline: "1"
   gpu:
     tensorParallelSize: "1"
@@ -36,4 +35,10 @@ tgi:
 # PostgreSQL Configuration
 postgres:
   ssl:
+    # Certificate will be read directly from local filesystem
     certPath: "/etc/postgresql/ssl/postgres-certs"
+
+backend:
+  enabled: true
+frontend:
+  enabled: true  

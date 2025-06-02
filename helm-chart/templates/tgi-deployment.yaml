@@ -18,34 +18,54 @@ spec:
         runAsUser: 1000
         fsGroup: 1000
       runtimeClassName: nvidia
+      # Add network policy to block all external traffic
+      hostNetwork: false
+      dnsPolicy: "None"
+      dnsConfig:
+        nameservers:
+          - "127.0.0.1"  # Force localhost only
       containers:
       - name: tgi
-        image: "{{ .Values.registry.base_url }}/innerlink-tgi-model-weights:2.4.1"
+        image: "{{ .Values.registry.huggingface_url }}/text-generation-inference:2.4.1"
         args:
         - "--max-batch-prefill-tokens"
         - "{{ .Values.tgi.args.maxBatchPrefillTokens }}"
-        #resources:
-          #limits:
-            #nvidia.com/gpu: 1
+        # Add these critical args
+        #- "--disable-custom-kernels"
+        - "--trust-remote-code"
+        #essProbe:
+          #initialDelaySeconds: 30
         ports:
         - containerPort: 8080
         env:
+        # Core model settings
         - name: MODEL_ID
           value: "{{ .Values.tgi.model.path }}"
-        - name: HF_HUB_OFFLINE
-          value: "{{ .Values.tgi.model.offline }}"
-        - name: TENSOR_PARALLEL_SIZE
-          value: "{{ .Values.tgi.gpu.tensorParallelSize }}"
-        - name: CUDA_VISIBLE_DEVICES
-          value: "{{ .Values.tgi.gpu.cudaVisibleDevices }}"
         - name: HOST
           value: "0.0.0.0"
         - name: PORT
           value: "8080"
-
         - name: DTYPE
           value: "float16"
-        - name: NUMBA_CACHE_DIR # Add this line
+        
+        # GPU settings
+        - name: TENSOR_PARALLEL_SIZE
+          value: "{{ .Values.tgi.gpu.tensorParallelSize }}"
+        - name: CUDA_VISIBLE_DEVICES
+          value: "{{ .Values.tgi.gpu.cudaVisibleDevices }}"
+        
+        # STRICT offline mode - this is key
+        - name: HF_HUB_OFFLINE
+          value: "1"  # Use "1" instead of "true"
+        - name: TRANSFORMERS_OFFLINE
+          value: "1"
+        - name: HF_DATASETS_OFFLINE
+          value: "1"
+        #- name: DISABLE_CUSTOM_KERNELS
+          #value: "1"
+        
+        # Cache directories
+        - name: NUMBA_CACHE_DIR
           value: "/data/.cache/numba"
         - name: OUTLINES_CACHE_DIR
           value: "/data/.cache/outlines"
@@ -55,26 +75,84 @@ spec:
           value: "/data/.cache/triton"
         - name: XDG_CACHE_HOME
           value: "/data/.cache"
-
+        - name: HF_HOME
+          value: "/data/.cache/huggingface"
+        
+        # Disable all telemetry and network calls
+        - name: HF_HUB_DISABLE_TELEMETRY
+          value: "1"
+        - name: HF_HUB_DISABLE_PROGRESS_BARS
+          value: "1"
+        - name: HF_HUB_DISABLE_SYMLINKS_WARNING
+          value: "1"
+        - name: HF_HUB_DISABLE_EXPERIMENTAL_WARNING
+          value: "1"
+        - name: OTLP_ENDPOINT
+          value: "none"
+        
+        # Performance settings
         - name: MAX_TOTAL_TOKENS
           value: "2056"
         - name: MAX_INPUT_LENGTH
-          value: "1024"  # Limit input to 512
+          value: "1024"
         - name: MAX_BATCH_PREFILL_TOKENS
           value: "2056"
+        - name: TOKENIZERS_PARALLELISM
+          value: "false"
+        
+        # Python settings
+        - name: PYTHONDONTWRITEBYTECODE
+          value: "1"
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: PYTHONHTTPSVERIFY
+          value: "0"
+        
+        # Network isolation - CRITICAL
+        - name: no_proxy
+          value: "*"
+        - name: NO_PROXY
+          value: "*"
+        - name: http_proxy
+          value: ""
+        - name: https_proxy
+          value: ""
+        - name: HTTP_PROXY
+          value: ""
+        - name: HTTPS_PROXY
+          value: ""
+        
+        # Force local model loading
+        - name: HUGGING_FACE_HUB_TOKEN
+          value: ""
+        - name: HF_TOKEN
+          value: ""
+        
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
             drop: ["ALL"]
+            add: ["NET_BIND_SERVICE"]  # Only allow binding to ports
           readOnlyRootFilesystem: false
         volumeMounts:
         - name: model-weights-storage
           mountPath: /data
+        - name: shm-volume
+          mountPath: /dev/shm
+        # Increase startup time significantly 
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 60  # 
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 80  # 10 more minutes = 13 minutes total
       volumes:
       - name: model-weights-storage
         persistentVolumeClaim:
           claimName: model-weights-pvc
-      - name: shm                       # <‑‑ NEW
+      - name: shm-volume
         emptyDir:
-          medium: Memory               # tmpfs (RAM‑backed)  :contentReference[oaicite:0]{index=0}
-          sizeLimit: 1Gi               # 1 GiB is usually enough
+          medium: Memory
+          sizeLimit: 2Gi

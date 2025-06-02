@@ -10,7 +10,8 @@ spec:
   persistentVolumeReclaimPolicy: Delete # Or Retain, depending on your needs.
   storageClassName: local-storage
   local:
-    path: /app/data/model_weights # The directory on your host node.
+    #path: /app/data/model_weights # The directory on your host node.
+    path: /opt/dlami/nvme/model_weights
   nodeAffinity:
     required:
       nodeSelectorTerms:

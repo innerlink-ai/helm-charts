@@ -26,11 +26,9 @@ tgi:
   args:
     maxBatchPrefillTokens: 16384
   model:
-    id: "Qwen/QwQ-32B"
-    path: "/data/Qwen/QwQ-32B"
-    #path: "/data/hub/models--meta-llama--Llama-2-7b-chat-hf/snapshots/f5db02db724555f92da89c216ac04704f23d4590"
+    #id: "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"  
+    path: "google/gemma-3-27b-it"
     offline: "1"
-
   gpu:
     tensorParallelSize: "4"
     cudaVisibleDevices: "0,1,2,3"

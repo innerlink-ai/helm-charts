@@ -8,13 +8,7 @@ This Helm chart deploys InnerLink and its components in a Kubernetes cluster.
 - Nginx Ingress Controller
 - Access to GitHub Container Registry (GHCR)
 
-## Installation
-1. Create the required directories on your host machine:
-```bash
-#pretty sure i dont need these. 
-#sudo mkdir -p /mnt/data /mnt/model-weights /mnt/redis /mnt/postgres
-#sudo chmod 777 /mnt/data /mnt/model-weights /mnt/redis /mnt/postgres
-```
+
 
 # Remove K3s
 ```bash
@@ -33,6 +27,7 @@ export PATH=$PWD/bin:$PATH
 
 # Install k3s and
 ```bash
+
 sudo mkdir -p /etc/rancher/k3s
 sudo tee /etc/rancher/k3s/config.yaml >/dev/null <<'EOF'
 write-kubeconfig-mode: "644"     # world‑readable kube‑config
@@ -70,6 +65,34 @@ sudo helm upgrade innerlink ./helm-chart -n innerlink -f  helm-chart/values-remo
 
 2. Install the chart:
 ```bash
+wait_for_tgi_ready() {
+    echo "Waiting for TGI to be ready (looking for 'Connected' message)..."
+    local max_attempts=120  # 30 minutes max (120 * 10 seconds)
+    local attempt=1
+    
+    while [ $attempt -le $max_attempts ]; do
+        # Check if TGI pod exists and is running
+        if sudo kubectl get pods -n innerlink -l app=tgi --no-headers 2>/dev/null | grep -q "Running"; then
+            # Check logs for Connected message
+            if sudo kubectl logs -n innerlink -l app=tgi --tail=100 2>/dev/null | grep -q "Connected"; then
+                echo "✅ TGI is ready and connected!"
+                return 0
+            fi
+            echo "⏳ Pod in RUNNING state but not ready yet..."
+        fi
+        
+        echo "⏳ TGI not ready yet...waiting (attempt $attempt/$max_attempts)"
+        sleep 10
+        ((attempt++))
+    done
+    
+    echo "❌ Timeout waiting for TGI to be ready"
+    return 1
+}
+
+
+
+cd /app
 curl -X GET http://localhost:5000/v2/_catalog
 if ! sudo -u ubuntu docker ps | grep -q registry; then
    sudo -u ubuntu docker run -d -p 5000:5000 --restart=always --name registry registry:2
@@ -77,26 +100,40 @@ fi
 sudo systemctl stop  k3s
 #sudo rm -rf /var/lib/rancher/k3s/server
 sudo systemctl start k3s
-sleep 10
+sleep 20
 sudo kubectl get nodes 
 sleep 5
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 
-sudo k3s crictl pull localhost:5000/innerlink-tgi-model-weights:2.4.1
-sudo k3s crictl pull localhost:5000/ghcr.io/innerlink-ai/innerlink-backend:latest
-sudo k3s crictl pull localhost:5000/ghcr.io/innerlink-ai/innerlink-frontend:latest
 
-cd /app
 kubectl apply -f helm-chart/files/namespace.yaml
 
 sudo kubectl label nodes $(sudo kubectl get nodes -o jsonpath='{.items[0].metadata.name}') role=storage
-
 sudo kubectl label namespace innerlink istio-injection=enabled --overwrite
 SECRET=$(sudo openssl rand -base64 32)
 sudo kubectl create secret generic jwt-secret -n innerlink --from-literal=JWT_SECRET="$SECRET" --dry-run=client -o yaml | sudo kubectl apply -f -
+
+#sudo helm install innerlink ./helm-chart -n innerlink -f helm-chart/values-llama2-7b.yaml \
+#  --set global.imageRegistry=localhost:5000 \
+#  --kubeconfig /etc/rancher/k3s/k3s.yaml
+
+echo "🚀 Deploying TGI..."
 sudo helm install innerlink ./helm-chart -n innerlink -f helm-chart/values-llama2-7b.yaml \
   --set global.imageRegistry=localhost:5000 \
   --kubeconfig /etc/rancher/k3s/k3s.yaml
+  --set backend.enabled=false \
+  --set frontend.enabled=false \
+  --kubeconfig /etc/rancher/k3s/k3s.yaml
+
+# Wait for TGI to be ready
+wait_for_tgi_ready
+
+# Now deploy backend and frontend
+echo "🚀 Deploying backend and frontend..."
+sudo helm upgrade innerlink ./helm-chart -n innerlink -f helm-chart/values-llama2-7b.yaml \
+  --set global.imageRegistry=localhost:5000 \
+  --kubeconfig /etc/rancher/k3s/k3s.yaml
+
 
 sudo cp istio-1.25.2/bin/istioctl /usr/local/bin/
 sudo chmod +x /usr/local/bin/istioctl
@@ -113,17 +150,7 @@ sudo helm upgrade innerlink ./helm-chart -n innerlink -f  helm-chart/values-llam
 
 ```
 
-```
 
-cd /app
-kubectl apply -f helm-chart/files/namespace.yaml
-kubectl label namespace innerlink istio-injection=enabled --overwrite
-SECRET=$(openssl rand -base64 32)
-kubectl create secret generic jwt-secret -n innerlink --from-literal=JWT_SECRET="$SECRET" --dry-run=client -o yaml | kubectl apply -f -
-helm install innerlink ./helm-chart -n innerlink -f helm-chart/values-local-24g-llama2-7b.yaml
-
-
-```
 
 ## Uninstallation
 To uninstall the chart:
@@ -139,10 +166,20 @@ kubectl delete pv model-weights-pv -n innerlink --grace-period=0 --force
 kubectl delete pv  redis-pv  -n innerlink --grace-period=0 --force
 kubectl delete pv postgres-pv -n innerlink --grace-period=0 --force
 sudo rm -rf /app/data/postgres
+sudo pkill -f "python3 -m http.server 30080"
+sudo istioctl uninstall --purge -y
+kubectl delete namespace istio-system
+kubectl delete -f istio/istio-gateway.yaml 2>/dev/null || true
+kubectl delete -f istio/istio-virtualservice.yaml 2>/dev/null || true
+kubectl delete -f istio/istio-gateway-service.yaml 2>/dev/null || true
+kubectl get crd | grep istio | cut -d' ' -f1 | xargs kubectl delete crd
+kubectl delete validatingwebhookconfigurations istio-validator-istio-system 2>/dev/null || true
+kubectl delete mutatingwebhookconfigurations istio-sidecar-injector 2>/dev/null || true
+kubectl delete configmap -n kube-system istio-ca-root-cert 2>/dev/null || true
+
 
 
 sudo rm -rf /app/data
-
 ```
 
 
